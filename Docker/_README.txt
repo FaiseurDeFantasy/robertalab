@@ -4,7 +4,7 @@ HOW TO GET AN OPENROBERTALAB INSTALLATION WITHOUT MUCH SETUP
 Variables used (set as needed!):
 export BRANCH=develop
 export GITREPO=~rbudde/git/robertalab
-export VERSION='2.5.4'
+export VERSION='2.5.5'
 export DISTR_DIR='/tmp/distr'
 export DB_PARENTDIR='/home/rbudde/db'
 export SERVER_PORT_ON_HOST=7000
@@ -73,11 +73,16 @@ docker push rbudde/openroberta_emptydbfortest:$BRANCH-$VERSION
 
 4. RUN THE SERVER
 
-4.1 EMBEDDED SERVER
-Assume that the exported environment variable DB_PARENTDIR contains a valid data base directory, e.g. db-$VERSION,
-then run the upgrader first, if a new version is deployed (running it, if nothing has to be updated, is a noop):
-  docker run -v $DB_PARENTDIR:/opt/db rbudde/openroberta_upgrade:$BRANCH-$VERSION
-and then start the server with an embedded database (no sqlclient access during operation, otherwise fine) 
+4.1 UPGRADING THE DATABASE (IF REQUIRED FOR A NEW VERSION)
+Assume that the exported environment variable DB_PARENTDIR contains a valid data base directory, i.e. a directory
+containing versions of the database, then run the upgrader first, if a new version is deployed
+(running it, if nothing has to be updated, is a noop):
+
+docker run -v $DB_PARENTDIR:/opt/db rbudde/openroberta_upgrade:$BRANCH-$VERSION
+
+4.2 EMBEDDED SERVER
+Assume that the exported environment variable DB_PARENTDIR contains a valid data base directory, then start the
+server with an embedded database (no sqlclient access during operation, otherwise fine) 
 - with docker:
   docker run -p 7100:1999 -v $DB_PARENTDIR:/opt/db rbudde/openroberta_embedded:$BRANCH-$VERSION &
 - with docker-compose (using compose for a single container may appear a bit over-engineered):
@@ -87,7 +92,7 @@ Using docker-compose is preferred.
 If the log message is printed, which tells you how many programs are in the data base, everything is fine and you can
 access the server at http://dns-name-or-localhost:7100 (see docker command and the compose file)
 
-4.2 SERVER AND DATABASE SERVER
+4.3 SERVER AND DATABASE SERVER
 Running two container, one db server container and one server container is the preferred way for production systems.
 It allows the access to the database with a sql client (querying, but also backup and checkpoints):
   cd $GITREPO/Docker
@@ -107,13 +112,13 @@ Stop the two applications is done with
 For the two services two different networks are created (inspect the output of "docker network ls"), IP ranges are separated (inspect
 the output of "docker network inspect ora1_default" resp "docker network inspect ora2_default")
 
-4.3 RUNNING A TEST SETUP
+5. RUNNING A TEST SETUP
   cd $GITREPO/Docker
   docker-compose -p test -f dc-testserver.yml up &
   ...
   docker-compose -p test -f dc-testserver.yml stop
 
-5. INTEGRATION TEST CONTAINER
+6. INTEGRATION TEST CONTAINER
 
 Using the configuration file DockerfileIT you create an image, that contains
 - all crosscompiler
@@ -123,11 +128,12 @@ and has executed a
 - mvn clean install
 The entrypoint is defined as the bash script "runIT.sh".
 
-  cd $GITREPO/Docker
-  docker build -t rbudde/openroberta_it:$BRANCH-$VERSION -f DockerfileIT  --build-arg BRANCH=$BRANCH .
+cd $GITREPO/Docker
+docker build -t rbudde/openroberta_it:$BRANCH-$VERSION -f DockerfileIT  --build-arg BRANCH=$BRANCH .
 
-The following commands are executed by the roberta maintainer; you should NOT do this
-  docker push rbudde/openroberta_it:$BRANCH-$VERSION
+The following command is executed by the roberta maintainer; you should NOT do this
+
+docker push rbudde/openroberta_it:$BRANCH-$VERSION
 
 Starting this image
 - fetches the branch $BRANCH
@@ -135,4 +141,4 @@ Starting this image
 - execute all tests, including the integration tests
 - in case of success it returns 0, in case of errors/failures it returns 16
 
-  docker run rbudde/openroberta_it:$BRANCH-$VERSION
+docker run rbudde/openroberta_it:$BRANCH-$VERSION
