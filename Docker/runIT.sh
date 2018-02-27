@@ -9,7 +9,7 @@ else
 fi
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 echo "operating on branch $BRANCH"
-git pull https://github.com/OpenRoberta/robertalab.git
+git pull
 
 cd /opt/robertalab/OpenRobertaParent
 mvn clean install -DskipTests -DskipITs
