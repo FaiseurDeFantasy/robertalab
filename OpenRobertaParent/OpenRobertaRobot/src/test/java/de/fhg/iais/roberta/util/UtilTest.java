@@ -19,7 +19,7 @@ public class UtilTest {
 
     @Test
     public void testJavaIdentifier() {
-        assertTrue(Util1.isValidJavaIdentifier("P"));
+        assertFalse(Util1.isValidJavaIdentifier("P"));
         assertTrue(Util1.isValidJavaIdentifier("Pid"));
         assertTrue(Util1.isValidJavaIdentifier("€Pid_diP€"));
         assertTrue(Util1.isValidJavaIdentifier("_ö_ä_ü_ß_"));
